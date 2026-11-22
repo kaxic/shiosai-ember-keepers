@@ -1,0 +1,11 @@
+{
+  "key": "Ember",
+  "title": "灯守の地下回廊",
+  "english": "THE EMBER WARDEN",
+  "product": "The Ember Warden",
+  "introduction": "消えた炉に、もう一度火を。\n四つの地下回廊を巡り、失われた灯を取り戻す。",
+  "controls": "WASD・矢印で移動。J・左クリック長押しで斬撃、K・Spaceで回避、Lで衝撃波、Qで回復、Tで途中帰還。\n\n拠点はEで設備を利用。Jで地区、Kで鍛冶を選択。メニューは矢印とEnterで決定、Backspaceで戻ります。",
+  "accent": "#E2B169",
+  "ink": "#15212A",
+  "paper": "#F3E8D0"
+}

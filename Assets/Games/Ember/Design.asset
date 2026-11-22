@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde763a7415b356449cee39cb01180d9, type: 3}
+  m_Name: Design
+  m_EditorClassIdentifier: Assembly-CSharp::StudioSkin
+  key: Ember
+  title: "\u706F\u5B88\u306E\u5730\u4E0B\u56DE\u5ECA"
+  english: THE EMBER WARDEN
+  product: The Ember Warden
+  introduction: "\u6D88\u3048\u305F\u7089\u306B\u3001\u3082\u3046\u4E00\u5EA6\u706B\u3092\u3002\n\u56DB\u3064\u306E\u5730\u4E0B\u56DE\u5ECA\u3092\u5DE1\u308A\u3001\u5931\u308F\u308C\u305F\u706F\u3092\u53D6\u308A\u623B\u3059\u3002"
+  controls: "WASD\u30FB\u77E2\u5370\u3067\u79FB\u52D5\u3002J\u30FB\u5DE6\u30AF\u30EA\u30C3\u30AF\u9577\u62BC\u3057\u3067\u65AC\u6483\u3001K\u30FBSpace\u3067\u56DE\u907F\u3001L\u3067\u885D\u6483\u6CE2\u3001Q\u3067\u56DE\u5FA9\u3001T\u3067\u9014\u4E2D\u5E30\u9084\u3002\n\n\u62E0\u70B9\u306FE\u3067\u8A2D\u5099\u3092\u5229\u7528\u3002J\u3067\u5730\u533A\u3001K\u3067\u935B\u51B6\u3092\u9078\u629E\u3002\u30E1\u30CB\u30E5\u30FC\u306F\u77E2\u5370\u3068Enter\u3067\u6C7A\u5B9A\u3001Backspace\u3067\u623B\u308A\u307E\u3059\u3002"
+  accent: {r: 0.8862745, g: 0.69411767, b: 0.4117647, a: 1}
+  ink: {r: 0.08235294, g: 0.12941177, b: 0.16470589, a: 1}
+  paper: {r: 0.9529412, g: 0.9098039, b: 0.8156863, a: 1}
+  cover: {fileID: 2800000, guid: abd68c168d2da654fa4c40b57553fb49, type: 3}
+  illustrations: {fileID: 2800000, guid: 0be3a2fa4266f674a8729173d68a1902, type: 3}
+  music: {fileID: 8300000, guid: 36d0e525978cdc34690fadd3a3716daf, type: 3}
+  activityMusic: {fileID: 8300000, guid: 49745f272d5780c4b9e5168c243e7445, type: 3}
+  effects:
+  - {fileID: 8300000, guid: 20cb23c8d69549545a638c0e37ee0269, type: 3}
+  - {fileID: 8300000, guid: 015e0676bc5ea5e4989cdfe4a3e66a42, type: 3}
+  - {fileID: 8300000, guid: f0b1f277366c77d4d89591eb4e541139, type: 3}
+  - {fileID: 8300000, guid: 0d8af7cd3bfb90943b4010aed8fde9ba, type: 3}
+  - {fileID: 8300000, guid: d0b603a7e7a06b84aa06be86f8dd39f7, type: 3}
