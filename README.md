@@ -4,6 +4,8 @@
 
 **[ブラウザーで遊ぶ](https://kaxic.github.io/shiosai-ember-keepers/)**
 
+[実際のプレイ映像を見る](https://kaxic.github.io/shiosai-ember-keepers/media/demo.mp4)
+
 ![灯守の地下回廊のゲーム画面](Guides/Ember.jpg)
 
 [遊び方と手動で拡張する方法](Guides/Ember.md)
