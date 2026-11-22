@@ -59,7 +59,7 @@ public sealed class EmberGame : StudioGame
         }
     }
     public string ResultTitle => Outcome == EmberOutcome.Defeat ? "灯火を抱いて撤退" : Outcome == EmberOutcome.Return ?
-        "生還の灯" : Cycle > 0 ? $"深層 {Cycle} を踏破" : District == 3 ? "四つの炉に灯が戻った" : "地区の守り手を浄化";
+        "生還の灯" : Cycle > 0 ? $"深層 {Cycle} を踏破" : District == 7 ? "八つの炉に灯が戻った" : "地区の守り手を浄化";
     public string ResultText
     {
         get
@@ -67,7 +67,8 @@ public sealed class EmberGame : StudioGame
             if (Outcome == EmberOutcome.Defeat) return $"携行していた火片の半分、{S.lastTakings}個を守り抜いた。体力と薬びんは拠点で戻ります。";
             if (Outcome == EmberOutcome.Return) return $"火片{S.lastTakings}個を拠点へ届けた。鍛冶場で装備を強化して、次の探索に備えよう。";
             if (Cycle > 0) return $"火片{S.lastTakings}個を持ち帰った。最高記録は深層{BestCycle}。門から次の深層へ進めます。";
-            if (District == 3) return $"四灯がそろい、地下回廊に夜明けが差した。火片{S.lastTakings}個を持ち帰り、深層の巡回が開放された。";
+            if (District == 7) return $"最後の天球儀に火が灯り、八つの炉が結ばれた。火片{S.lastTakings}個を持ち帰った。";
+            if (District == 3) return $"四灯がそろい、地下回廊に夜明けが差した。火片{S.lastTakings}個を持ち帰り、白磁の潮殿と深層の巡回が開放された。";
             return $"火片{S.lastTakings}個を持ち帰った。門の先に「{DistrictNames[District + 1]}」が続いている。";
         }
     }
@@ -117,11 +118,15 @@ public sealed class EmberGame : StudioGame
     protected override void DrawGame() { hud.Draw(this); }
     protected override void SaveCheckpoint() { if (journey != null) Save(S); checkpointWait = 3f; }
 
+    public bool Observed(int entry) => journey.Observed(entry);
+    public void ShowCodex() { if(Mode==EmberMode.Hub){ S.mode=EmberMode.Codex;Selection=0; } }
+    public void Inspect(int entry) { if(Mode==EmberMode.Codex)Selection=entry; }
+    protected override bool HandleEscape(){ if(Mode==EmberMode.Codex){Back();return true;} return false; }
     public void HomeMenu(bool forge)
     {
         if (!IsHub) return;
         S.mode = forge ? EmberMode.Forge : EmberMode.Districts;
-        Selection = forge ? 0 : Mathf.Min(4, Cleared); Tone(1);
+        Selection = forge ? 0 : Mathf.Min(DistrictNames.Length, Cleared); Tone(1);
     }
     public void Upgrade(int i)
     {
@@ -156,7 +161,8 @@ public sealed class EmberGame : StudioGame
         if (Mode == EmberMode.Hub)
         {
             journey.Step(dt, new EmberInput { move = Movement() });
-            if (Input.GetKeyDown(KeyCode.J)) HomeMenu(false);
+            if (Input.GetKeyDown(KeyCode.B)) ShowCodex();
+            else if (Input.GetKeyDown(KeyCode.J)) HomeMenu(false);
             else if (Input.GetKeyDown(KeyCode.K)) HomeMenu(true);
             else if (Input.GetKeyDown(KeyCode.E))
             {
@@ -198,7 +204,8 @@ public sealed class EmberGame : StudioGame
     {
         if (Input.GetKeyDown(KeyCode.Backspace)) { if (Mode == EmberMode.Result) GoHome(); else Back(); return; }
         if (Mode == EmberMode.Relic && Input.GetKeyDown(KeyCode.T)) { RequestReturn(); return; }
-        int count = Mode == EmberMode.Districts ? 5 : Mode == EmberMode.Relic || Mode == EmberMode.Forge ? 3 : 2;
+        if (Mode == EmberMode.Codex && Input.GetKeyDown(KeyCode.B)) { Back(); return; }
+        int count = Mode == EmberMode.Codex ? EmberJourney.Creatures.Length + EmberJourney.Bosses.Length : Mode == EmberMode.Districts ? DistrictNames.Length + 1 : Mode == EmberMode.Relic || Mode == EmberMode.Forge ? 3 : 2;
         int dir = 0;
         if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.A)) dir = -1;
         if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.D)) dir = 1;
@@ -219,7 +226,7 @@ public sealed class EmberGame : StudioGame
         if (!Reviewing) return;
         Save(record);
         var resumed = new EmberJourney(Load<EmberRecord>()).S;
-        if (resumed.cleared != 4 || resumed.bestCycle < 1 || resumed.wallet != record.wallet)
+        if (resumed.cleared != DistrictNames.Length || resumed.bestCycle < 1 || resumed.wallet != record.wallet)
             throw new InvalidOperationException("地下回廊のディスク再開検証に失敗しました");
     }
     public override void PrepareShowcase()

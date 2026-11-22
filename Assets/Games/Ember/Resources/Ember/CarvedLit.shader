@@ -7,6 +7,7 @@ Shader "Ember/Carved Hall"
   [NoScaleOffset] _Lava ("Red basalt", 2D)="gray"{}
   [NoScaleOffset] _Gold ("Engraved bronze", 2D)="gray"{}
   [NoScaleOffset] _Wood ("Workshop oak", 2D)="gray"{}
+  [NoScaleOffset] _TileDetail ("Hand-laid tesserae and chisel marks", 2D)="gray"{}
   _Hit ("Hit flash", Range(0,1))=0
  }
  SubShader {
@@ -20,7 +21,7 @@ Shader "Ember/Carved Hall"
    #pragma multi_compile_fwdbase
    #include "UnityCG.cginc"
    #include "AutoLight.cginc"
-   sampler2D _Stone,_Slate,_Jade,_Lava,_Gold,_Wood;
+   sampler2D _TileDetail,_Stone,_Slate,_Jade,_Lava,_Gold,_Wood;
    half _Hit;
    struct data {float4 vertex:POSITION; float3 normal:NORMAL; float4 uv:TEXCOORD0; fixed4 color:COLOR;};
    struct output {float4 pos:SV_POSITION;float4 paint:TEXCOORD0;half3 normal:TEXCOORD1;half3 color:COLOR;float3 world:TEXCOORD2; SHADOW_COORDS(3)};
@@ -50,7 +51,12 @@ Shader "Ember/Carved Hall"
     half direct=saturate(dot(n,normalize(half3(-.53,.80,-.36))));
     half fill=saturate(dot(n,normalize(half3(.50,.27,.67))));
     half3 shade=half3(.49,.54,.63)+half3(.47,.42,.33)*direct*lerp(.57,1,SHADOW_ATTENUATION(i))+half3(.07,.10,.13)*fill;
+    half3 viewDir=normalize(_WorldSpaceCameraPos-i.world);
+    half glint=pow(saturate(dot(n,normalize(viewDir+half3(-.53,.80,-.36)))),22);
+    half2 engraving=tex2D(_TileDetail,uv*.46).rg;
+    if(type>.5 && type<5.5)c+=half3(.066,.057,.040)*(engraving.x-.48);
     half3 lit=saturate(c*shade);
+    if(type>2.5 && type<5.5)lit+=glint*(.035+.095*engraving.y)*half3(1,.86,.58);
     float flicker=sin(_Time.y*4.2+i.world.x*3.7+i.world.z*.64)*.025;
     lit=lerp(lit,saturate(c*(1.12+flicker)),saturate(glow));
     lit=lerp(lit,half3(1,.77,.48),saturate(_Hit)*.79);

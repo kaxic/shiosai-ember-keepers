@@ -11,9 +11,9 @@ public static class EmberVerification
         CheckRetreatAndDefeat();
         var run = new EmberJourney(new EmberRecord());
         int frames = 0, elixirs = 0, relicCount = 0, dodges = 0, camps = 0;
-        for (int expedition = 0; expedition < 6; expedition++)
+        for (int expedition = 0; expedition < 10; expedition++)
         {
-            int index = Mathf.Min(4, expedition);
+            int index = Mathf.Min(8, expedition);
             Check(run.CanEnter(index) && run.Enter(index), "district accessible " + index);
             int spent = 0;
             bool warned = false, awakened = false, reinforcements = false;
@@ -60,17 +60,19 @@ public static class EmberVerification
             run = RoundTrip(run);
             int bank = run.S.wallet;
             Check(!run.ConfirmReturn() && run.S.wallet == bank, "result cannot pay twice");
-            Check(run.S.cleared == Mathf.Min(4, expedition + 1), "district progression");
-            if (expedition >= 4)
-                Check(run.S.bestCycle == expedition - 3 && run.S.district == expedition - 4, "deep record and rotation");
+            Check(run.S.cleared == Mathf.Min(8, expedition + 1), "district progression");
+            if (expedition >= 8)
+                Check(run.S.bestCycle == expedition - 7 && run.S.district == expedition - 8, "deep record and rotation");
             run.Home();
             if (expedition == 0) { Buy(run, 0); Buy(run, 1); }
             if (expedition == 1) { Buy(run, 2); Buy(run, 0); }
             if (expedition == 2) { Buy(run, 1); Buy(run, 0); }
             if (expedition == 3) Buy(run, 2);
+            if (expedition >= 4) for (int i = 0; i < 3; i++) if (run.CanUpgrade(i)) Buy(run, i);
         }
-        Check(run.S.wins == 6 && relicCount == 12 && camps == 12 && dodges > 0, "four guardians and two deep expeditions");
-        Debug.Log($"Ember verification passed: four districts, two deep cycles, {run.S.totalKills} enemies, " +
+        Check(run.S.bestiaryBits == (1 << (EmberJourney.Creatures.Length + EmberJourney.Bosses.Length)) - 1, "encountered complete bestiary");
+        Check(run.S.wins == 10 && relicCount == 20 && camps == 20 && dodges > 0, "eight guardians and two deep expeditions");
+        Debug.Log($"Ember verification passed: eight districts, two deep cycles, {run.S.totalKills} enemies, " +
             $"{relicCount} relic choices, {camps} sanctuaries, {dodges} dodges, {elixirs} healing flasks and {frames * Step:0.0} simulated combat seconds.");
         return run.S;
     }

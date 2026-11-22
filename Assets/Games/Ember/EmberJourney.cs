@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum EmberMode { Hub, Districts, Forge, Fight, Relic, Retreat, Result, Sanctum }
+public enum EmberMode { Hub, Districts, Forge, Fight, Relic, Retreat, Result, Sanctum, Codex }
 public enum EmberOutcome { Victory, Defeat, Return }
 
 [Serializable]
@@ -28,6 +28,7 @@ public sealed class EmberDanger
 [Serializable]
 public sealed class EmberRecord
 {
+    public int bestiaryBits;
     public int version = 1, wallet, cleared, bestCycle, wins, voyages, totalKills;
     public int[] upgrades = new int[3];
     public EmberMode mode;
@@ -37,7 +38,8 @@ public sealed class EmberRecord
     public float stamina = 100, swing, dodge, pulse, hurt, invulnerable, attackWait, dashWait, skillWait, motion;
     public bool retreatFromReward, retreatFromSanctum;
     public int wave = 1, restChoice;
-    public float waveDelay;
+    public float waveDelay, ventClock;
+    public int ventStep;
     public List<int> relics = new List<int>();
     public int[] offers = new int[3];
     public List<EmberFoe> enemies = new List<EmberFoe>();
@@ -52,22 +54,22 @@ public struct EmberInput
 
 public sealed class EmberJourney
 {
-    public static readonly string[] Districts = { "灰灯の坑道", "翠根の聖堂", "星硝子の水路", "暁鐘の炉心" };
+    public static readonly string[] Districts = { "灰灯の坑道", "翠根の聖堂", "星硝子の水路", "暁鐘の炉心", "白磁の潮殿", "琥珀の蜂廊", "紫晶の裁庭", "天蓋の星炉" };
     public static readonly string[] Notes =
     {
         "門衛の斬撃を避け、消えた坑道の種火を取り戻す。", "根に覆われた回廊。俊敏な影狼と連続突進に注意。",
-        "水晶の足場を渡り、遠くから降る灯弾をかいくぐる。", "四つの灯を結ぶ最奥の炉。交差する予兆を読み切ろう。"
+        "水晶の足場を渡り、遠くから降る灯弾をかいくぐる。", "四つの灯を結ぶ炉。交差する予兆を読み切ろう。", "沈んだ柱廊を進む。波紋と潮刃は横移動でかわそう。", "蜜房を抜ける。蜂の群れが描く三角の印に注意。", "紫晶の法廷。遅れて砕ける印を味方に引き寄せない。", "回廊を束ねる最上の天球儀。放射状の星条を読み切ろう。"
     };
-    public static readonly string[] Bosses = { "灰角の門衛", "根冠の狩主", "星硝子の司祭", "暁鐘の鍛神" };
+    public static readonly string[] Bosses = { "灰角の門衛", "根冠の狩主", "星硝子の司祭", "暁鐘の鍛神", "白潮の神官", "蜜冠の女王", "晶杖の審判", "星紡ぎの天守" };
     public static readonly string[] Tools = { "灯剣", "守火の外套", "薬びん" };
     public static readonly string[] ToolNotes = { "斬撃の威力 +2。衝撃波も強くなる。", "最大体力 +8。", "探索開始時の回復びん +1。回復量も増える。" };
-    public static readonly string[] Relics = { "火打ちの欠片", "若木の心臓", "風渡りの紐", "鳴火の紋", "宵咲きの種", "旅薬師の鈴", "煤染めの護符", "残り火の靴" };
+    public static readonly string[] Relics = { "火打ちの欠片", "若木の心臓", "風渡りの紐", "鳴火の紋", "宵咲きの種", "旅薬師の鈴", "煤染めの護符", "残り火の靴", "潮守の長杖", "星環の腕輪", "蜜蝋の灯芯", "白夜の杯", "双刃の留金", "砂時計の鍵", "薄氷の羽衣", "炉番の貨印" };
     public static readonly string[] RelicNotes =
     {
         "この探索中、斬撃の威力 +3。", "最大体力 +10。受け取ると体力を10回復。",
         "回避の再使用が0.35秒早くなり、消費が5減る。", "衝撃波の威力 +6、再使用が2秒早くなる。",
         "魔物を倒すたびに体力を2回復。", "薬びんを1本補充し、携帯数も1増える。",
-        "受けるダメージを2軽減。", "歩行速度 +18%。スタミナ回復も速くなる。"
+        "受けるダメージを2軽減。", "歩行速度 +18%。スタミナ回復も速くなる。", "斬撃の間合いが0.7長くなる。", "衝撃波の半径が1.6広がる。", "敵を倒すとスタミナを18回復。", "薬を使うと体力をさらに12回復。", "斬撃の再使用が0.10秒短くなる。", "斬撃を当てると衝撃波の待ち時間が0.45秒短くなる。", "回避時の無敵時間が0.28秒長くなる。", "敵を倒すたび火片を1個追加で得る。"
     };
     static readonly Vector2[] SpawnPoints =
     {
@@ -79,10 +81,16 @@ public sealed class EmberJourney
         new[] {0, 1, 0}, new[] {0, 2, 1, 0},
         new[] {1, 0, 1}, new[] {1, 3, 2, 1},
         new[] {2, 0, 2}, new[] {2, 3, 1, 2},
-        new[] {3, 1, 2, 0}, new[] {3, 2, 1, 0, 2}
+        new[] {3, 1, 2, 0}, new[] {3, 2, 1, 0, 2},
+        new[] {5, 0, 5}, new[] {5, 2, 6, 1}, new[] {6, 1, 6}, new[] {6, 7, 5, 2},
+        new[] {7, 3, 8}, new[] {8, 5, 7, 3}, new[] {9, 6, 8, 0}, new[] {9, 5, 7, 8, 6}
     };
-    static readonly int[] BaseHealth = { 18, 13, 14, 26, 82 };
-    static readonly float[] Speeds = { 1.85f, 2.9f, 1.7f, 1.2f, 1.55f };
+    static readonly int[] BaseHealth = { 18, 13, 14, 26, 82, 19, 11, 17, 22, 21 };
+    static readonly float[] Speeds = { 1.85f, 2.9f, 1.7f, 1.2f, 1.55f, 2.0f, 3.05f, 1.5f, 1.75f, 2.1f };
+    public static readonly string[] Creatures = {"灰刃の門兵","影狼","灯弾の精","石鎚衛士","潮殻の槍兵","蜜灯蜂","紫晶の漂霊","石版の重騎","星角の猟獣"};
+    public static readonly string[] Tactics = {"目の前を斬る。背へ回って反撃。","直線の突進。赤い道の横へ。","距離を取り、足元を狙う。走り込んで斬ろう。","大振りの周囲攻撃。円の外で待つ。","並んだ二本の潮刃。二筋の間か外へ。","弧を描いて接近し、突進した跡が破裂。","現在地と一歩先に結晶を落とす。切り返してかわせる。","前方の石版を叩き、次に足元を揺らす。","細い雷線が走ったあと、落雷地点が弾ける。"};
+    static int BookEntry(int kind, int district) => kind == 4 ? Creatures.Length + district : kind < 4 ? kind : kind - 1;
+    public bool Observed(int entry) => (S.bestiaryBits & (1 << entry)) != 0;
     public static readonly Vector2 Altar = new Vector2(-4, 1.1f), Chest = new Vector2(4, 1.1f), Door = new Vector2(0, 4.25f);
     public const float UseRadius = 1.9f;
     public EmberRecord S { get; }
@@ -91,7 +99,7 @@ public sealed class EmberJourney
     public int AttackPower => 5 + 2 * S.upgrades[0] + 3 * Relic(0);
     public int FlaskMax => 2 + S.upgrades[2] + Relic(5);
     public int WaveMax => S.room == 3 || (S.district == 0 && S.room == 1 && S.cycle == 0) ? 1 : 2;
-    public bool AtHome => S.mode == EmberMode.Hub || S.mode == EmberMode.Forge || S.mode == EmberMode.Districts;
+    public bool AtHome => S.mode == EmberMode.Hub || S.mode == EmberMode.Forge || S.mode == EmberMode.Districts || S.mode == EmberMode.Codex;
 
     public EmberJourney(EmberRecord record)
     {
@@ -103,8 +111,9 @@ public sealed class EmberJourney
         S.relics.RemoveAll(i => i < 0 || i >= Relics.Length);
         for (int i = 0; i < 3; i++) S.offers[i] = Mathf.Clamp(S.offers[i], 0, Relics.Length - 1);
         S.enemies.RemoveAll(e => e == null || e.kind < 0 || e.kind >= BaseHealth.Length || e.hp <= 0);
+        foreach (var active in S.enemies) S.bestiaryBits |= 1 << BookEntry(active.kind, Mathf.Clamp(S.district, 0, Districts.Length - 1));
         S.dangers.RemoveAll(d => d == null || d.duration <= 0 || d.remaining <= 0);
-        S.cleared = Mathf.Clamp(S.cleared, 0, 4); S.district = Mathf.Clamp(S.district, 0, 3);
+        S.cleared = Mathf.Clamp(S.cleared, 0, Districts.Length); S.district = Mathf.Clamp(S.district, 0, Districts.Length - 1);
         S.room = Mathf.Clamp(S.room, 1, 3); S.wallet = Mathf.Max(0, S.wallet);
         S.wave = Mathf.Clamp(S.wave, 1, WaveMax);
         S.cycle = Mathf.Max(0, S.cycle); S.bestCycle = Mathf.Max(0, S.bestCycle);
@@ -128,12 +137,12 @@ public sealed class EmberJourney
         S.wallet -= Cost(i); S.upgrades[i]++; S.hp = MaxHp; S.flasks = FlaskMax;
         return true;
     }
-    public bool CanEnter(int i) => i >= 0 && i <= 4 && (i == 4 ? S.cleared == 4 : i <= S.cleared);
+    public bool CanEnter(int i) => i >= 0 && i <= Districts.Length && (i == Districts.Length ? S.cleared >= 4 : i <= S.cleared);
     public bool Enter(int index)
     {
         if (!AtHome || !CanEnter(index)) return false;
-        int depth = index == 4 ? S.bestCycle + 1 : 0;
-        Start(index == 4 ? (depth - 1) % 4 : index, depth); return true;
+        int depth = index == Districts.Length ? S.bestCycle + 1 : 0;
+        Start(index == Districts.Length ? (depth - 1) % Mathf.Max(1, S.cleared) : index, depth); return true;
     }
     public bool Retry()
     {
@@ -148,7 +157,7 @@ public sealed class EmberJourney
     }
     void SpawnRoom()
     {
-        S.wave = 1; S.waveDelay = .85f; S.restChoice = 0;
+        S.ventClock = 4.2f; S.ventStep = 0; S.wave = 1; S.waveDelay = .85f; S.restChoice = 0;
         S.mode = EmberMode.Fight; S.hero = new Vector2(0, -3.2f); S.facing = Vector2.up;
         S.enemies.Clear(); S.dangers.Clear(); S.stamina = 100;
         S.swing = S.dodge = S.pulse = S.hurt = S.motion = S.attackWait = S.dashWait = S.skillWait = 0;
@@ -165,7 +174,8 @@ public sealed class EmberJourney
     }
     void Spawn(int kind, Vector2 pos, float cooldown)
     {
-        int tier = S.district + Mathf.Min(16, S.cycle);
+        S.bestiaryBits |= 1 << BookEntry(kind, S.district);
+        int tier = Mathf.Min(4, S.district) + Mathf.Min(16, S.cycle);
         int hp = BaseHealth[kind] + tier * (kind == 4 ? 15 : 3);
         if (Vector2.Distance(S.hero, pos) < 2.5f) pos = -pos;
         S.enemies.Add(new EmberFoe { id = S.nextId++, kind = kind, hp = hp, maxHp = hp, pos = pos, cooldown = cooldown });
@@ -194,7 +204,7 @@ public sealed class EmberJourney
     {
         if (S.mode == EmberMode.Retreat) S.mode = S.retreatFromReward ? EmberMode.Relic :
             S.retreatFromSanctum ? EmberMode.Sanctum : EmberMode.Fight;
-        if (S.mode == EmberMode.Forge || S.mode == EmberMode.Districts) S.mode = EmberMode.Hub;
+        if (S.mode == EmberMode.Forge || S.mode == EmberMode.Districts || S.mode == EmberMode.Codex) S.mode = EmberMode.Hub;
     }
     public bool ConfirmReturn()
     {
@@ -276,12 +286,12 @@ public sealed class EmberJourney
         S.hurt = Down(S.hurt, dt * 3.8f); S.pulse = Down(S.pulse, dt * 2.6f); S.dodge = Down(S.dodge, dt * 3.9f);
         S.stamina = Mathf.Min(100, S.stamina + (24 + 8 * Relic(7)) * dt);
         if (input.heal && S.flasks > 0 && S.hp < MaxHp)
-        { S.flasks--; S.hp = Mathf.Min(MaxHp, S.hp + 19 + S.upgrades[2] * 3); Chime = 3; }
+        { S.flasks--; S.hp = Mathf.Min(MaxHp, S.hp + 19 + S.upgrades[2] * 3 + 12 * Relic(11)); Chime = 3; }
         if (input.dodge && S.dashWait <= 0 && S.stamina >= 20 - 5 * Relic(2))
         {
             S.dashDir = move.sqrMagnitude > .01f ? move.normalized : S.facing;
             S.stamina -= 20 - 5 * Relic(2); S.dashWait = 1.25f - .35f * Relic(2);
-            S.dodge = 1; S.invulnerable = Mathf.Max(.4f, S.invulnerable); Chime = 1;
+            S.dodge = 1; S.invulnerable = Mathf.Max(.4f + .28f * Relic(14), S.invulnerable); Chime = 1;
         }
         if (S.dodge > 0) { S.hero = Clamp(S.hero + S.dashDir * (11 * dt)); S.facing = S.dashDir; }
         else
@@ -294,7 +304,7 @@ public sealed class EmberJourney
         {
             S.skillWait = 7 - 2 * Relic(3); S.pulse = 1; Chime = 3;
             for (int i = S.enemies.Count - 1; i >= 0; i--)
-                if (Vector2.Distance(S.enemies[i].pos, S.hero) <= 3.8f) Hit(i, AttackPower + 3 + 6 * Relic(3));
+                if (Vector2.Distance(S.enemies[i].pos, S.hero) <= 3.8f + 1.6f * Relic(9)) Hit(i, AttackPower + 3 + 6 * Relic(3));
         }
         if (input.attack && S.attackWait <= 0 && S.stamina >= 5 && S.dodge <= 0) Slash();
         if (S.enemies.Count == 0)
@@ -308,13 +318,15 @@ public sealed class EmberJourney
             return;
         }
         foreach (var foe in S.enemies) MoveFoe(foe, dt);
+        TickVents(dt);
         UpdateDangers(dt);
     }
     static float Down(float n, float amount) => Mathf.Max(0, n - amount);
     static Vector2 Clamp(Vector2 p) => new Vector2(Mathf.Clamp(p.x, -8.65f, 8.65f), Mathf.Clamp(p.y, -5.15f, 5.15f));
     void Slash()
     {
-        EmberFoe nearest = null; float reach = 2.45f;
+        EmberFoe nearest = null; float bladeReach = 2.45f + .7f * Relic(8);
+        float reach = bladeReach;
         foreach (var foe in S.enemies)
         {
             float distance = Vector2.Distance(foe.pos, S.hero);
@@ -322,12 +334,15 @@ public sealed class EmberJourney
             reach = distance; nearest = foe;
         }
         if (nearest != null && reach > .015f) S.facing = (nearest.pos - S.hero).normalized;
-        S.stamina -= 5; S.attackWait = .36f; S.swing = 1; Chime = 0;
+        S.stamina -= 5; S.attackWait = .36f - .10f * Relic(12); S.swing = 1; Chime = 0;
         for (int i = S.enemies.Count - 1; i >= 0; i--)
         {
             Vector2 away = S.enemies[i].pos - S.hero;
-            if (away.magnitude <= 2.45f && (away.magnitude < .62f || Vector2.Dot(S.facing, away.normalized) >= .05f))
+            if (away.magnitude <= bladeReach && (away.magnitude < .62f || Vector2.Dot(S.facing, away.normalized) >= .05f))
+            {
                 Hit(i, AttackPower);
+                S.skillWait = Mathf.Max(0, S.skillWait - .45f * Relic(13));
+            }
         }
     }
     void Hit(int i, int damage)
@@ -339,13 +354,14 @@ public sealed class EmberJourney
             {
                 foe.awakened = true;
                 // The guardian's awakened phase introduces a themed escort and an immediate, visible warning.
-                Spawn(S.district, SpawnPoints[foe.pattern % SpawnPoints.Length], 1.5f);
+                Spawn(S.district < 4 ? S.district : S.district + 1, SpawnPoints[foe.pattern % SpawnPoints.Length], 1.5f);
                 Warn(foe);
             }
             return;
         }
         S.enemies.RemoveAt(i); S.dangers.RemoveAll(d => d.owner == foe.id);
-        S.kills++; S.totalKills++; S.satchel += foe.kind == 4 ? 6 : 2;
+        S.kills++; S.totalKills++; S.satchel += (foe.kind == 4 ? 6 : 2) + Relic(15);
+        S.stamina = Mathf.Min(100, S.stamina + 18 * Relic(10));
         S.hp = Mathf.Min(MaxHp, S.hp + 2 * Relic(4));
     }
     void MoveFoe(EmberFoe foe, float dt)
@@ -356,11 +372,12 @@ public sealed class EmberJourney
         Vector2 delta = S.hero - foe.pos;
         float distance = delta.magnitude;
         if (distance > .02f) foe.face = delta / distance;
-        float reach = foe.kind switch { 0 => 2f, 1 => 4.5f, 2 => 7f, 3 => 2.45f, _ => 6.3f };
+        float reach = foe.kind switch { 0 => 2f, 1 => 4.5f, 2 => 7f, 3 => 2.45f, 5 => 4.1f, 6 => 4.7f, 7 => 6.5f, 8 => 3.1f, 9 => 5f, _ => 6.3f };
         if (foe.cooldown <= 0 && distance <= reach) { Warn(foe); return; }
         float stop = foe.kind == 2 ? 4.35f : foe.kind == 4 ? 1.55f : .95f;
         Vector2 velocity = distance > stop ? foe.face : Vector2.zero;
-        if (foe.kind == 2 && distance < 2.8f) velocity = -foe.face * .75f;
+        if (foe.kind == 6 && distance > 2.8f) velocity += new Vector2(-foe.face.y, foe.face.x) * .65f;
+        if ((foe.kind == 2 || foe.kind == 7) && distance < 2.8f) velocity = -foe.face * .75f;
         foreach (var other in S.enemies)
         {
             if (other == foe) continue;
@@ -372,7 +389,7 @@ public sealed class EmberJourney
     }
     void Warn(EmberFoe foe)
     {
-        int hit = 4 + S.district + Mathf.Min(10, S.cycle);
+        int hit = 4 + Mathf.Min(4, S.district) + Mathf.Min(10, S.cycle);
         float delay = foe.kind == 4 ? (foe.awakened ? .88f : 1.15f) : foe.kind == 0 ? .72f : .93f;
         void Area(Vector2 center, float radius, int damage, float extra = 0) =>
             Danger(foe, center, center, radius, damage, delay + extra, false);
@@ -383,6 +400,17 @@ public sealed class EmberJourney
             case 1: Rush(.74f); break;
             case 2: Area(S.hero, 1.28f, hit); break;
             case 3: Area(foe.pos, 2.65f, hit + 2); break;
+            case 5: // Two parallel tide blades leave a safe strip down the middle.
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    Vector2 offset = new Vector2(-foe.face.y, foe.face.x) * .85f * side;
+                    Danger(foe, foe.pos + offset, Clamp(S.hero + foe.face + offset), .48f, hit, delay, false);
+                }
+                break;
+            case 6: Rush(.46f); Area(foe.pos, 1.15f, hit, .32f); break;
+            case 7: Area(S.hero, .92f, hit); Area(Clamp(S.hero + S.facing * 1.6f), 1.18f, hit, .45f); break;
+            case 8: Area(foe.pos + foe.face * 1.5f, 1.75f, hit + 1); Area(foe.pos, .92f, hit, .33f); break;
+            case 9: Danger(foe, foe.pos, S.hero, .46f, hit, delay, false); Area(S.hero, 1.3f, hit, .6f); break;
             case 4:
                 bool alternate = foe.pattern++ % 2 != 0;
                 if (S.district == 0)
@@ -399,6 +427,21 @@ public sealed class EmberJourney
                 {
                     if (alternate) Area(foe.pos, 3.2f, hit + 2);
                     else for (int j = -1; j <= 1; j++) Area(Clamp(S.hero + new Vector2(j * 2.25f, 0)), 1.32f, hit, .12f * (j + 1));
+                }
+                else if (S.district >= 4)
+                {
+                    if(S.district==4 && alternate){Rush(1.1f);Area(S.hero,1.8f,hit,.46f);break;}
+                    if(S.district==5 && alternate){for(int j=0;j<3;j++)Area(Clamp(S.hero+new Vector2(j-1,Mathf.Abs(j-1)) * 1.65f),1.22f,hit,j*.12f);break;}
+                    if(S.district==6 && alternate){Area(foe.pos,2.9f,hit);Area(Clamp(S.hero+S.facing*1.25f),1.8f,hit+1,.65f);break;}
+                    int spokes = S.district - 1;
+                    var origin = alternate ? foe.pos : S.hero;
+                    for (int n = 0; n < spokes; n++)
+                    {
+                        float a = Mathf.PI * 2f * n / spokes + foe.pattern * .48f;
+                        Vector2 ray = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+                        Danger(foe, Clamp(origin + ray * .95f), Clamp(origin + ray * (3f + S.district * .3f)), .46f, hit, delay + .12f * (n % 2), false);
+                    }
+                    if (foe.awakened) Area(origin, 1.35f, hit, .48f);
                 }
                 else if (alternate) { Rush(1.3f); Area(S.hero, 2.4f, hit + 2, .52f); }
                 else
@@ -421,6 +464,28 @@ public sealed class EmberJourney
         Vector2 path = d.to - d.from;
         float along = path.sqrMagnitude < .001f ? 0 : Mathf.Clamp01(Vector2.Dot(p - d.from, path) / path.sqrMagnitude);
         return Vector2.Distance(p, d.from + along * path);
+    }
+    public static Vector2 VentSite(int district,int room,int i)
+    {
+        float shift=(room-2)*.6f;
+        return district switch {
+            4 => new Vector2((i-1)*3.45f,1.1f+shift),
+            5 => new Vector2((i-1)*2.9f,(i==1?2f:-1.3f)+shift),
+            6 => new Vector2((i-1)*2.7f,(i-1)*1.55f+shift),
+            _ => new Vector2((i==1?0:i==0?-3.55f:3.55f),(i==1?-2f:1.8f)+shift)
+        };
+    }
+    void TickVents(float dt)
+    {
+        if(S.district<4)return;
+        S.ventClock-=dt;
+        if(S.ventClock>0)return;
+        int i=S.ventStep++%3;
+        var from=VentSite(S.district,S.room,i);
+        var to=S.district==4||S.district==7?VentSite(S.district,S.room,(i+1)%3):from;
+        float radius=from==to?1.46f:.51f;
+        S.dangers.Add(new EmberDanger{id=S.nextId++,owner=-1,from=from,to=to,radius=radius,damage=5,duration=1.15f,remaining=1.15f});
+        S.ventClock=S.district==7?3.6f:4.6f;
     }
     void UpdateDangers(float dt)
     {

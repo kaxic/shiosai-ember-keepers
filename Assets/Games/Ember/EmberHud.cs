@@ -13,7 +13,7 @@ public sealed class EmberHud
     static readonly Color Health = new Color32(230, 111, 91, 255);
     static readonly Color Vigor = new Color32(129, 207, 185, 255);
     static readonly Color Disabled = new Color32(157, 159, 149, 255);
-    static readonly string[] Numerals = { "I", "II", "III", "IV" };
+    static readonly string[] Numerals = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII" };
     static readonly string[] ForgeSigns = { "sword", "cloak", "flask" };
     static readonly Dictionary<string, Texture2D> Signs = new Dictionary<string, Texture2D>();
     EmberGame game;
@@ -24,6 +24,7 @@ public sealed class EmberHud
         switch (g.Mode)
         {
             case EmberMode.Hub: Hub(); break;
+            case EmberMode.Codex: Codex(); break;
             case EmberMode.Districts: Districts(); break;
             case EmberMode.Forge: Forge(); break;
             case EmberMode.Fight: Fight(); break;
@@ -45,7 +46,7 @@ public sealed class EmberHud
         Backplate(x, y + 74, 286, 55);
         Block(x, y + 84, 3, 33, Ember);
         Type("次の探索", x + 13, y + 79, 76, 18, 12, Ash);
-        string next = game.Cleared < 4 ? EmberGame.DistrictNames[Mathf.Clamp(game.Cleared, 0, 3)] : "深層の巡回";
+        string next = game.Cleared < EmberGame.DistrictNames.Length ? EmberGame.DistrictNames[Mathf.Clamp(game.Cleared, 0, EmberGame.DistrictNames.Length - 1)] : "深層の巡回";
         Type(next, x + 12, y + 97, 263, 25, 16, Parchment);
 
         float sx = game.W - 310;
@@ -55,11 +56,12 @@ public sealed class EmberHud
         Type(game.Wallet.ToString("N0"), sx + 46, y + 21, 94, 29, 20, Ember);
         Block(sx + 145, y + 10, 1, 36, Iron);
         Type("踏破した地区", sx + 160, y + 5, 118, 18, 12, Ash);
-        Type($"{game.Cleared} / 4", sx + 160, y + 21, 116, 29, 20, Parchment);
+        Type($"{game.Cleared} / {EmberGame.DistrictNames.Length}", sx + 160, y + 21, 116, 29, 20, Parchment);
 
         float by = game.H - 59;
         if (KeyButton(x, by, 162, "J", "地区を選ぶ")) game.HomeMenu(false);
         if (KeyButton(x + 169, by, 137, "K", "鍛冶場")) game.HomeMenu(true);
+        if (KeyButton(x + 312, by, 149, "B", "魔物誌")) game.ShowCodex();
         Type("WASD ／ 矢印　歩く", game.W - 265, by + 1, 244, 37, 14, Parchment, align: TextAnchor.MiddleRight, shadow: true);
         if (!string.IsNullOrWhiteSpace(game.Prompt)) Prompt(game.Prompt, by - 48);
     }
@@ -184,21 +186,22 @@ public sealed class EmberHud
         Rect p = Window(916, 496, "DISTRICT GATE", "探索する地区", "gate");
         Type("守り手を倒すと、次の地区への道が開く。", p.x + 22, p.y + 76, p.width - 44, 27, 15, Ash);
         const float listWidth = 431;
-        int preview = Mathf.Clamp(game.Selection, 0, 4);
-        for (int i = 0; i < 5; i++)
+        int deep = EmberGame.DistrictNames.Length;
+        int preview = Mathf.Clamp(game.Selection, 0, deep);
+        for (int i = 0; i <= deep; i++)
         {
             bool open = game.CanEnter(i), selected = game.Selection == i;
-            var r = new Rect(p.x + 19, p.y + 116 + i * 63, listWidth, 56);
+            var r = new Rect(p.x + 19 + (i == deep ? 0 : i % 2 * 218), p.y + 116 + (i / 2) * 62, i == deep ? listWidth : 212, 55);
             bool hover = Hover(r);
             if (hover) preview = i;
             Row(r, open, selected, hover);
-            Type(i == 4 ? "∞" : Numerals[i], r.x + 9, r.y, 59, r.height, 21, open ? Ember : Ash, true, TextAnchor.MiddleCenter);
-            Block(r.x + 71, r.y + 9, 1, r.height - 18, Iron);
-            string areaName = i == 4 ? "深層の巡回" : EmberGame.DistrictNames[i];
-            Type(areaName, r.x + 85, r.y + 5, r.width - 184, 26, 18, open ? Parchment : Ash, true);
-            Type(i == 4 ? $"最高記録　深層 {game.BestCycle}" : $"第 {i + 1} 地区", r.x + 86, r.y + 31, r.width - 191, 20, 12, Ash);
+            Type(i == deep ? "∞" : Numerals[i], r.x + 2, r.y, 36, r.height, 21, open ? Ember : Ash, true, TextAnchor.MiddleCenter);
+            Block(r.x + 39, r.y + 9, 1, r.height - 18, Iron);
+            string areaName = i == deep ? "深層の巡回" : EmberGame.DistrictNames[i];
+            Type(areaName, r.x + 47, r.y + 5, r.width - 49, 26, 18, open ? Parchment : Ash, true);
+            Type(i == deep ? $"最高記録　深層 {game.BestCycle}" : $"第 {i + 1} 地区", r.x + 48, r.y + 31, r.width - 50, 20, 12, Ash);
             string tag = open ? i < game.Cleared ? "再探索" : "探索" : "未開放";
-            Type(tag, r.xMax - 119, r.y, 104, r.height, 14, open ? Ember : Disabled, align: TextAnchor.MiddleRight);
+            Type(tag, r.xMax - 65, r.y + 30, 56, 20, 12, open ? Ember : Disabled, align: TextAnchor.MiddleRight);
             if (open && Hit(r)) game.EnterDistrict(i);
         }
         float px = p.x + listWidth + 34, py = p.y + 116, pw = p.xMax - 19 - px;
@@ -206,22 +209,28 @@ public sealed class EmberHud
         var art = new Rect(px + 6, py + 6, pw - 12, 171);
         Block(art.x, art.y, art.width, art.height, Coal);
         Sigil("gate", art.center.x - 21, art.center.y - 22, 42, Iron);
-        if (preview < 4) DistrictArt(art, preview);
+        if (preview < deep) DistrictArt(art, preview);
         else
         {
             float aw = (art.width - 2) / 2, ah = (art.height - 2) / 2;
             for (int i = 0; i < 4; i++) DistrictArt(new Rect(art.x + i % 2 * (aw + 2), art.y + i / 2 * (ah + 2), aw, ah), i);
         }
-        Type(preview == 4 ? "深層の巡回" : EmberGame.DistrictNames[preview], px + 13, py + 182, pw - 26, 34, 22, Parchment, true);
-        string note = preview == 4 ? "四つの地区を踏破した灯守のための、繰り返し挑める探索。" : EmberGame.DistrictNotes[preview];
+        Type(preview == deep ? "深層の巡回" : EmberGame.DistrictNames[preview], px + 13, py + 182, pw - 26, 34, 22, Parchment, true);
+        string note = preview == deep ? "最初の四地区を踏破すると開放。踏破済みの地区を順に巡る探索。" : EmberGame.DistrictNotes[preview];
         Type(note, px + 14, py + 222, pw - 28, 56, 14, Ash);
         Block(px + 13, py + 281, pw - 26, 1, Iron);
-        Type(game.CanEnter(preview) ? "入域可" : preview == 4 ? "開放条件　4地区を踏破" : "開放条件　前の地区を踏破", px + 14, py + 283, pw - 28, 22, 13, Ember);
+        Type(game.CanEnter(preview) ? "入域可" : preview == deep ? "開放条件　4地区を踏破" : "開放条件　前の地区を踏破", px + 14, py + 283, pw - 28, 22, 13, Ember);
         Footer(p);
     }
 
     void DistrictArt(Rect area, int index)
     {
+        if (index >= 4)
+        {
+            var plate = Resources.Load<Texture2D>("Ember/OuterDistricts");
+            if (plate) GUI.DrawTextureWithTexCoords(area, plate, new Rect((index % 2) * .5f, (1 - (index - 4) / 2) * .5f, .5f, .5f));
+            return;
+        }
         Texture image = game.skin.illustrations;
         if (!image) return;
         // Each district occupies one quarter of the atlas. Preserve its aspect ratio within the frame.
@@ -232,6 +241,30 @@ public sealed class EmberHud
         GUI.EndGroup();
     }
 
+    void Codex()
+    {
+        var p=Window(888,486,"KEEPER'S FIELD NOTES","回廊の魔物誌","fire");
+        int ordinary=EmberJourney.Creatures.Length,total=ordinary+EmberJourney.Bosses.Length,seen=0;
+        for(int i=0;i<total;i++)if(game.Observed(i))seen++;
+        Type($"遭遇の記録　{seen} / {total}",p.x+22,p.y+76,p.width-44,28,16,Ember);
+        for(int i=0;i<total;i++)
+        {
+            var r=new Rect(p.x+21+(i/6)*161,p.y+119+(i%6)*45,154,39);
+            bool known=game.Observed(i);Row(r,known,game.Selection==i,Hover(r));
+            string name=i<ordinary?EmberJourney.Creatures[i]:EmberJourney.Bosses[i-ordinary];
+            Type(known?name:"未遭遇",r.x+7,r.y+2,r.width-14,34,15,known?Parchment:Ash);
+            if(Hit(r))game.Inspect(i);
+        }
+        int n=game.Selection;bool revealed=game.Observed(n),boss=n>=ordinary;
+        float bx=p.x+516,bw=p.width-537;
+        Block(bx,p.y+119,bw,263,Panel);
+        if(boss&&revealed)DistrictArt(new Rect(bx+9,p.y+128,bw-18,91),n-ordinary);
+        else Sigil("fire",bx+bw/2-21,p.y+147,42,revealed?Ember:Iron);
+        Type(revealed?(boss?EmberJourney.Bosses[n-ordinary]:EmberJourney.Creatures[n]):"未遭遇",bx+12,p.y+224,bw-24,35,21,Parchment,true);
+        string note=boss?EmberJourney.Notes[n-ordinary]:EmberJourney.Tactics[n];
+        Type(revealed?note:"探索で出会うと記録が開く。",bx+12,p.y+272,bw-24,85,15,Ash);
+        Footer(p);
+    }
     void Forge()
     {
         Rect p = Window(728, 481, "THE FORGE", "灯守の鍛冶場", "sword");
@@ -292,7 +325,7 @@ public sealed class EmberHud
         Type(game.ResultText, p.x + 24, p.y + 80, p.width - 48, 76, 17, Parchment);
         float column = (p.width - 54) / 3;
         string[] labels = { "倒した敵", "預けた火片", "踏破した地区" };
-        string[] values = { game.Kills.ToString(), game.Wallet.ToString("N0"), $"{game.Cleared} / 4" };
+        string[] values = { game.Kills.ToString(), game.Wallet.ToString("N0"), $"{game.Cleared} / {EmberGame.DistrictNames.Length}" };
         for (int i = 0; i < 3; i++)
         {
             float x = p.x + 19 + i * (column + 8);
@@ -330,7 +363,7 @@ public sealed class EmberHud
 
     void Footer(Rect p)
     {
-        Type("↑ ↓　選択　　 Enter　決定", p.x + 22, p.yMax - 54, p.width - 225, 35, 14, Ash);
+        Type(game.Mode==EmberMode.Codex?"矢印　記録を読む":"↑ ↓　選択　　 Enter　決定", p.x + 22, p.yMax - 54, p.width - 225, 35, 14, Ash);
         if (KeyButton(p.xMax - 171, p.yMax - 55, 150, "BS", "拠点へ戻る")) game.Back();
     }
 

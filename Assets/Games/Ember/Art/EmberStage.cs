@@ -14,12 +14,12 @@ internal sealed class EmberStage
     const string Gold="BA9559", Brass="927449", Iron="384653", OakBrown="755540";
     internal EmberStage(EmberMesh m,List<Vector3> fires,bool hub,int district,int room)
     {
-        this.m=m;this.fires=fires;this.hub=hub;this.district=Mathf.Clamp(district,0,3);this.room=room;
-        stone=hub?"707270":new[]{"686971","52776A","536F84","694F52"}[this.district];
-        highlight=hub?"A8A089":new[]{"A6A098","A4B395","88ABBE","AF8B71"}[this.district];
-        inlay=hub?"AB8D5F":new[]{"A58E67","A1A57A","8BA6B4","BA8759"}[this.district];
-        signal=hub?"83DAD4":new[]{"F2B05C","9DDBA1","80D5EF","FFAB62"}[this.district];
-        masonry=hub?Flagstone:new[]{Slate,Marble,Slate,Basalt}[this.district];
+        this.m=m;this.fires=fires;this.hub=hub;this.district=Mathf.Clamp(district,0,7);this.room=room;
+        stone=hub?"707270":new[]{"686971","52776A","536F84","694F52","4C8586","AB7846","6F547C","596781"}[this.district];
+        highlight=hub?"A8A089":new[]{"A6A098","A4B395","88ABBE","AF8B71","D5CDB3","E5BD70","CEB6D7","DBC797"}[this.district];
+        inlay=hub?"AB8D5F":new[]{"A58E67","A1A57A","8BA6B4","BA8759","89CBBE","E9B351","B998DB","D7B875"}[this.district];
+        signal=hub?"83DAD4":new[]{"F2B05C","9DDBA1","80D5EF","FFAB62","AEF2DC","FFD475","E8ABFE","FFE6AA"}[this.district];
+        masonry=hub?Flagstone:new[]{Slate,Marble,Slate,Basalt,Marble,Oak,Marble,Slate}[this.district];
     }
     void Ink(string c,Finish f=Plain,float glow=0)=>m.Ink(c,f,glow);
     void Block(float x,float y,float z,float w,float h,float d,float rot=0)=>m.Block(x,y,z,w,h,d,rot);
@@ -28,7 +28,7 @@ internal sealed class EmberStage
     {
         Ink("25303A",Slate);Block(0,-.79f,0,20.2f,1.30f,12.6f);
         Ink(stone,masonry);Block(0,-.12f,0,19.72f,.24f,12.20f);
-        Ink(hub?"887966":new[]{"74808A","6C8A77","697F94","896D66"}[district],hub?Flagstone:masonry);
+        Ink(hub?"887966":new[]{"74808A","6C8A77","697F94","896D66","82ABAB","BF956B","9686A5","7D87A1"}[district],hub?Flagstone:masonry);
         Block(0,-.047f,0,18.26f,.112f,11.18f);
         // Narrow border just outside the playable rectangle; maintain a visually quiet arena centre.
         Ink(inlay,Engraved);
@@ -45,6 +45,14 @@ internal sealed class EmberStage
             }
         }
         FloorEmblem();
+        if(!hub && district>=4)for(int j=0;j<3;j++)
+        {
+            var point=EmberJourney.VentSite(district,room,j);
+            Vector3 p=At(point.x,.042f,point.y);
+            Ink(inlay,Engraved);m.Ring(p,.42f,.52f,12);m.Ring(p,.73f,.75f,24);
+            Ink(signal,Marble,.38f);
+            for(int k=0;k<6;k++){float a=k*Mathf.PI/3;m.Jewel(p+At(Mathf.Cos(a)*.34f,0,Mathf.Sin(a)*.34f),At(.063f,.022f,.063f),4);}
+        }
         // Lower retaining wall, broken upper silhouettes and masonry joints.
         for(int i=0;i<13;i++)
         {
@@ -57,7 +65,7 @@ internal sealed class EmberStage
         else
         {
             m.originOffset=Vector3.forward*1.04f;
-            switch(district){case 0: Mine();break;case 1: Grove();break;case 2: Canal();break;default: Foundry();break;}
+            switch(district){case 0: Mine();break;case 1: Grove();break;case 2: Canal();break;case 3: Foundry();break;default: OuterCourt();break;}
             m.originOffset=Vector3.zero;
         }
         // Wall braziers mark arena dimensions with two unambiguous pools of fire.
@@ -65,6 +73,50 @@ internal sealed class EmberStage
         {
             Brazier(x,-2.2f,.68f);
             if(!hub && district!=2) Brazier(x,3.8f,.82f);
+        }
+    }
+    void OuterCourt()
+    {
+        for(int i=-2;i<=2;i++)
+        {
+            float x=i*3.7f, z=5.5f;
+            if(district==4)
+            {
+                Arch(x,z,1.36f,1.8f,.31f,.69f);
+                Ink("8AE4D5",Water,.55f);Block(x,.12f,z-.30f,2.4f,.12f,1.1f);
+                Ink("E6E6C7",Marble);m.Jewel(At(x,1.2f,z),At(.31f,.32f,.31f),11);
+            }
+            else if(district==5)
+            {
+                for(int row=0;row<3;row++)for(int col=0;col<2;col++)
+                {
+                    Vector3 center=At(x+(col-.5f)*1.25f+(row%2)*.52f,1f+row*.99f,z);
+                    for(int edge=0;edge<6;edge++)
+                    {
+                        float a=edge*Mathf.PI/3,b=a+Mathf.PI/3;
+                        Ink("CF9B51",Engraved);m.Tube(center+At(Mathf.Cos(a)*.64f,Mathf.Sin(a)*.64f,0),center+At(Mathf.Cos(b)*.64f,Mathf.Sin(b)*.64f,0),.078f,.078f,6);
+                    }
+                    Ink(signal,Marble,.37f);m.Jewel(center-Vector3.forward*.15f,At(.22f,.33f,.15f),6);
+                }
+            }
+            else if(district==6)
+            {
+                for(int j=-1;j<=1;j++){Ink(j==0?highlight:stone,Marble);m.Jewel(At(x+j*.60f,1.2f+(.3f*(j+1)),z),At(.48f,1.52f+.33f*((i+3)%3),.64f),7,j);}
+                Ink(signal,Engraved,.8f);m.Ring(At(x,.035f,z-.75f),1.05f,1.12f,7);
+            }
+            else
+            {
+                float radius=i==0?2.12f:1.06f;
+                Pillar(x,z,1.65f,.75f);
+                var c=At(x,2.45f,z);Ink(inlay,Engraved);
+                for(int k=0;k<3;k++)for(int j=0;j<28;j++)
+                {
+                    var turn=Quaternion.Euler(k*37f,k*46f,17f);
+                    float a=j*2*Mathf.PI/28,b=(j+1)*2*Mathf.PI/28;
+                    m.Tube(c+turn*At(Mathf.Cos(a)*radius,Mathf.Sin(a)*radius,0),c+turn*At(Mathf.Cos(b)*radius,Mathf.Sin(b)*radius,0),.049f,.049f,5);
+                }
+                Ink(signal,Plain,.85f);m.Jewel(c,Vector3.one*radius*.31f,11);
+            }
         }
     }
     void FloorEmblem()

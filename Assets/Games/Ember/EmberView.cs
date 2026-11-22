@@ -59,7 +59,7 @@ public sealed class EmberView : MonoBehaviour
         {
             if(!foes.TryGetValue(data.id,out var actor))
             {
-                actor=NewFigure(data.kind);actor.previous=data.pos;foes.Add(data.id,actor);
+                actor=NewFigure(data.kind,game.District);actor.previous=data.pos;foes.Add(data.id,actor);
             }
             bool moving=(data.pos-actor.previous).sqrMagnitude>.000001f;
             actor.motion=Mathf.MoveTowards(actor.motion,moving?1:0,Time.unscaledDeltaTime*8);
@@ -120,6 +120,7 @@ public sealed class EmberView : MonoBehaviour
         carved=new Material(artShader){name="Carved stone, bronze and timber"};veil=new Material(fxShader){name="Light and shadow wash"};
         string[] names={"Flagstones","Slate","Verdigris","Furnace","Damask","Oak"};
         string[] slots={"_Stone","_Slate","_Jade","_Lava","_Gold","_Wood"};
+        carved.SetTexture("_TileDetail",Resources.Load<Texture2D>("Ember/Tesserae"));
         for(int i=0;i<names.Length;i++)carved.SetTexture(slots[i],Resources.Load<Texture2D>("Ember/"+names[i]));
         lens=Camera.main;
         if(!lens)
@@ -166,7 +167,7 @@ public sealed class EmberView : MonoBehaviour
         {
             var mote=Draw("Ember",decor,spark,carved);mote.shadowCastingMode=ShadowCastingMode.Off;sparks.Add(mote.transform);
         }
-        ColorUtility.TryParseHtmlString("#"+(hub?"26363D":new[]{"29323C","233932","1D3449","39292E"}[Mathf.Clamp(district,0,3)]),out var backdrop);
+        ColorUtility.TryParseHtmlString("#"+(hub?"26363D":new[]{"29323C","233932","1D3449","39292E","25484F","533B21","3B2F4A","233143"}[Mathf.Clamp(district,0,7)]),out var backdrop);
         lens.backgroundColor=backdrop;
     }
     void Sanctum(int choice)
@@ -186,8 +187,10 @@ public sealed class EmberView : MonoBehaviour
         station("Relic coffer "+choice,At(4,0,1.1f),m=>EmberStations.Coffer(m,choice),1.07f);
         station("Processional gate",At(0,0,4.25f),EmberStations.Exit,1.38f);
     }
-    Figure NewFigure(int kind)
+    Figure NewFigure(int kind,int district=0)
     {
+        int design=kind;
+        kind=EmberFigures.Skeleton(design);
         var f=new Figure {kind=kind};f.root=Group(kind<0?"灯守":"回廊の守り手",world);f.pivot=Group("Pose",f.root);
         float r=EmberFigures.Footprint(kind);
         Mesh shade=Cached("soft contact",Shadow);
@@ -198,7 +201,7 @@ public sealed class EmberView : MonoBehaviour
         {
             if(kind==2&&part>0)continue;
             int piece=part;
-            Mesh shape=Cached("actor "+kind+"/"+part,m=>EmberFigures.Build(m,kind,piece));
+            Mesh shape=Cached("actor "+design+"/"+(design==4?district:0)+"/"+part,m=>{EmberFigures.Build(m,kind,piece);if(piece==0)EmberFigures.Insignia(m,design,district);});
             var renderer=Draw("Articulated piece "+part,f.pivot,shape,carved);
             f.paint[part]=renderer;f.limbs[part]=renderer.transform;
             renderer.transform.localPosition=EmberFigures.Joint(kind,part);

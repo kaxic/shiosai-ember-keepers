@@ -5,6 +5,50 @@ using static EmberMesh.Finish;
 internal static class EmberFigures
 {
     // -1 lamp keeper, 0 hollow guard, 1 cinder hound, 2 lantern wisp, 3 bronze sentinel, 4 bell warden.
+    internal static int Skeleton(int kind) => kind switch {5=>0,6=>2,7=>2,8=>3,9=>1,_=>kind};
+    internal static void Insignia(EmberMesh m,int design,int district)
+    {
+        if(design<4)return;
+        if(design==4)
+        {
+            string[] colors={"C99A64","94CA90","98DBF5","F6A666","BCEDE7","F2C465","D7AEFF","FFE6AB"};
+            m.Ink(colors[district],Engraved,.40f);
+            int tips=3+district;
+            for(int j=0;j<tips;j++)
+            {
+                float a=Mathf.PI*2*j/tips;
+                Vector3 d=At(Mathf.Cos(a),0,Mathf.Sin(a));
+                m.Tube(At(0,2.29f,0)+d*.33f,At(0,2.76f+.14f*(j%2),0)+d*.49f,.10f,.009f,6);
+            }
+            m.Ring(At(0,2.48f,0),.37f,.46f,18);
+            return;
+        }
+        if(design==5)
+        {
+            m.Ink("D7EEE5",Marble);m.Jewel(At(0,1.12f,-.24f),At(.48f,.55f,.21f),11);
+            for(int j=-3;j<=3;j++){m.Ink("69B9BD",Engraved);m.Beam(At(0,.72f,-.38f),At(j*.11f,1.37f,-.41f),.027f,.035f);}
+        }
+        if(design==6)foreach(float s in new[]{-1f,1f})
+        {
+            m.Ink("F8CF74",Marble,.25f);m.Jewel(At(s*.47f,1.30f,-.02f),At(.53f,.104f,.31f),7,s*.6f);
+            m.Ink("FCDF96",Plain,.65f);m.Tube(At(s*.10f,1.33f,.1f),At(s*.29f,1.7f,.22f),.03f,.012f,5);
+        }
+        if(design==7)for(int j=0;j<6;j++)
+        {
+            float a=j*Mathf.PI/3;m.Ink("DDA3EF",Marble,.40f);m.Jewel(At(.47f*Mathf.Cos(a),1.05f+.19f*Mathf.Sin(a),.47f*Mathf.Sin(a)),At(.12f,.32f,.10f),5,a);
+        }
+        if(design==8)
+        {
+            m.Ink("9D789B",Engraved);m.Block(0,1.09f,-.27f,.82f,.91f,.17f);
+            m.Ink("DABFE6",Marble,.4f);for(int i=-1;i<=1;i++)m.Jewel(At(i*.23f,1.86f,.015f),At(.12f,.40f,.13f),5);
+        }
+        if(design==9)foreach(float s in new[]{-1f,1f})
+        {
+            m.Ink("E9C277",Engraved);var elbow=At(s*.39f,1.03f,.28f);
+            m.Tube(At(s*.12f,.68f,.30f),elbow,.061f,.044f,6);m.Tube(elbow,At(s*.58f,1.28f,.11f),.046f,.006f,5);
+            m.Tube(elbow,At(s*.33f,1.35f,.31f),.038f,.006f,5);
+        }
+    }
     internal static float Height(int kind)
     {
         switch(kind){case 1:return .93f;case 2:return 1.50f;case 3:return 2.18f;case 4:return 2.73f;default:return 1.66f;}
