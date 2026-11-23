@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Design
   m_EditorClassIdentifier: Assembly-CSharp::StudioSkin
   key: Ember
-  title: "\u706F\u5B88\u306E\u5730\u4E0B\u56DE\u5ECA"
+  title: "B \u5263\u3068\u56de\u907f\u306e\u30c0\u30f3\u30b8\u30e7\u30f3RPG"
+  subtitle: "\u706f\u5b88\u306e\u5730\u4e0b\u56de\u5eca"
   english: THE EMBER WARDEN
   product: The Ember Warden
   introduction: "\u6d88\u3048\u305f\u7089\u306b\u3001\u3082\u3046\u4e00\u5ea6\u706b\u3092\u3002\n\u516b\u3064\u306e\u5730\u4e0b\u56de\u5eca\u3092\u5de1\u308a\u3001\u5931\u308f\u308c\u305f\u706f\u3092\u53d6\u308a\u623b\u3059\u3002"

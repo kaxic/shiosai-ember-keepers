@@ -2,23 +2,23 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#15272a"><title>灯守の地下回廊 | 潮彩作品集</title>
+  <meta name="theme-color" content="#15272a"><title>B 剣と回避のダンジョンRPG | 潮彩作品集</title>
   <link rel="icon" href="icon.png"><link rel="stylesheet" href="player.css"><link rel="stylesheet" href="touch.css"><script defer src="touch.js"></script>
 </head>
 <body>
-<header><span class="imprint">潮彩作品集</span><a href="https://github.com/kaxic/shiosai-ember-keepers">GitHub ↗</a></header>
+<header><a class="imprint" id="library-home" href="https://kaxic.github.io/shiosai-game-library/#B"><span aria-hidden="true">← </span>ゲーム一覧</a><span id="home-status" role="status"></span><a href="https://github.com/kaxic/shiosai-ember-keepers">GitHub ↗</a></header>
 <main>
   <section id="stage" aria-label="ゲーム画面">
-    <canvas id="game" data-game="Ember" width="1280" height="720" tabindex="0" aria-label="灯守の地下回廊のゲーム画面"></canvas>
+    <canvas id="game" data-game="Ember" width="1280" height="720" tabindex="0" aria-label="B 剣と回避のダンジョンRPGのゲーム画面"></canvas>
     <div id="cover">
-      <div class="titleblock"><p class="genre">アクションRPG</p><h1>灯守の地下回廊</h1><p class="intro">消えた炉に、もう一度火を。
+      <div class="titleblock"><p class="genre">灯守の地下回廊</p><h1>B 剣と回避のダンジョンRPG</h1><p class="intro">消えた炉に、もう一度火を。
 八つの地下回廊を巡り、失われた灯を取り戻す。</p>
         <button id="launch">ゲームを開始 <span aria-hidden="true">›</span></button>
         <div id="status" role="status" aria-live="polite"></div><progress id="meter" max="1" value="0" hidden></progress>
       </div>
     </div>
   </section>
-  <div class="bar"><span class="wordmark">灯守の地下回廊</span><div class="buttons"><button id="help">操作方法</button><button id="full">全画面</button><a id="demo" href="media/demo.mp4" hidden>プレイ映像 ▷</a></div></div>
+  <div class="bar"><span class="wordmark">B 剣と回避のダンジョンRPG</span><div class="buttons"><button id="help">操作方法</button><button id="full">全画面</button><a id="demo" href="media/demo.mp4" hidden>プレイ映像 ▷</a></div></div>
   <dialog id="guide"><div class="dialogtop"><h2>操作方法</h2><button class="close">閉じる</button></div><p>キーボードとマウスで遊べます。進行はこのブラウザーに保存されます。</p><div id="controls">WASD・矢印で移動。J・左クリック長押しで斬撃、K・Spaceで回避、Lで衝撃波、Qで回復、Tで途中帰還。
 
 拠点はEで設備を利用。Jで地区、Kで鍛冶、Bで魔物誌を選択。メニューは矢印とEnterで決定、Backspaceで戻ります。
@@ -35,7 +35,7 @@ const meter=document.getElementById('meter');
 let instance=null;
 const build='Build/';
 const config={
-  dataUrl:build+'2cc1ec7b7fba9c17a64c23f5a9e89eeb.data.unityweb',frameworkUrl:build+'dc17d8e90548239be23506cfd620bfc6.framework.js.unityweb',codeUrl:build+'0ff92eb9c7b95d4a474453ca00270fc0.wasm.unityweb',
+  dataUrl:build+'5b2cf2fbe4949b0e5c9108467c9f1447.data.unityweb',frameworkUrl:build+'2f5c7a635bd82cc593882358c1e066b5.framework.js.unityweb',codeUrl:build+'01fc0c367804cac1944187ea7f70994e.wasm.unityweb',
   streamingAssetsUrl:'StreamingAssets',companyName:'Shiosai Works',productName:'The Ember Warden',productVersion:'1.0',
   devicePixelRatio:Math.min(1.5,window.devicePixelRatio||1),
   showBanner:function(message,type){ if(type==='error'){statusLine.textContent='読み込みに失敗しました。ページを再読み込みしてください。';console.error(message);} }
@@ -43,12 +43,19 @@ const config={
 async function startGame(){
   launchButton.disabled=true; statusLine.textContent='ゲームを読み込んでいます…';meter.hidden=false;
   try{
-    if(typeof createUnityInstance!=='function')await new Promise((resolve,reject)=>{const s=document.createElement('script'); s.src=build+'8f89eaf41cf4afa30764457d8b5dfe94.loader.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});
+    if(typeof createUnityInstance!=='function')await new Promise((resolve,reject)=>{const s=document.createElement('script'); s.src=build+'6edfa7d9f279634ade85f71649700a96.loader.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});
     instance=await createUnityInstance(canvas,config,value=>{meter.value=value;statusLine.textContent='読み込み中　'+Math.round(100*value)+'%';});
     cover.hidden=true;canvas.focus();document.body.classList.add('playing');
   }catch(e){statusLine.textContent='ゲームを開始できませんでした。WebGL 2に対応したブラウザーで再試行してください。';meter.hidden=true;launchButton.disabled=false;console.error(e);}
 }
 launchButton.addEventListener('click',startGame);
+document.getElementById('library-home').addEventListener('click',event=>{
+  if(!instance||event.button!==0||event.metaKey||event.ctrlKey||event.altKey||event.shiftKey)return;
+  event.preventDefault();
+  document.getElementById('home-status').textContent='保存してゲーム一覧へ戻ります…';
+  instance.SendMessage('ShiosaiLibraryNavigation','GoHome');
+});
+window.shiosaiHomeFailed=()=>{document.getElementById('home-status').textContent='保存に失敗しました。ゲーム一覧をもう一度押してください。';};
 document.getElementById('full').addEventListener('click',()=>{if(instance){instance.SetFullscreen(1);canvas.focus();}else document.getElementById('stage').requestFullscreen?.();});
 document.getElementById('help').addEventListener('click',()=>document.getElementById('guide').showModal());
 document.querySelectorAll('dialog .close').forEach(b=>b.onclick=()=>b.closest('dialog').close());
