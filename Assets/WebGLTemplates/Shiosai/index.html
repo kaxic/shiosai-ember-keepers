@@ -2,23 +2,32 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#15272a"><title>B 剣と回避のダンジョンRPG | 潮彩作品集</title>
+  <meta name="theme-color" content="#15272a"><meta name="description" content="拠点の門から地下へ潜り、剣を振り、敵の攻撃を見て身をかわすリアルタイムのアクションRPGです。持ち帰った火片で装備を鍛え、もう一部屋先を目指します。">
+  <title>B拠点ダンジョン探索ゲーム | 潮彩ゲーム棚</title>
   <link rel="icon" href="icon.png"><link rel="stylesheet" href="player.css"><link rel="stylesheet" href="touch.css"><script defer src="touch.js"></script>
 </head>
 <body>
 <header><a class="imprint" id="library-home" href="https://kaxic.github.io/shiosai-game-library/#B"><span aria-hidden="true">← </span>ゲーム一覧</a><span id="home-status" role="status"></span><a href="https://github.com/kaxic/shiosai-ember-keepers">GitHub ↗</a></header>
 <main>
   <section id="stage" aria-label="ゲーム画面">
-    <canvas id="game" data-game="Ember" width="1280" height="720" tabindex="0" aria-label="B 剣と回避のダンジョンRPGのゲーム画面"></canvas>
+    <canvas id="game" data-game="Ember" width="1280" height="720" tabindex="0" aria-label="B拠点ダンジョン探索ゲームのゲーム画面"></canvas>
     <div id="cover">
-      <div class="titleblock"><p class="genre">灯守の地下回廊</p><h1>B 剣と回避のダンジョンRPG</h1><p class="intro">消えた炉に、もう一度火を。
-八つの地下回廊を巡り、失われた灯を取り戻す。</p>
-        <button id="launch">ゲームを開始 <span aria-hidden="true">›</span></button>
+      <div class="titleblock"><p class="genre">灯守の地下回廊</p><h1>B拠点ダンジョン探索ゲーム</h1><p class="intro">拠点の門から地下へ潜り、剣を振り、敵の攻撃を見て身をかわすリアルタイムのアクションRPGです。持ち帰った火片で装備を鍛え、もう一部屋先を目指します。</p>
+        <div class="cover-actions"><button id="launch">ゲームを開始 <span aria-hidden="true">›</span></button>
+          <a href="#how-to-play">遊び方を読む <span aria-hidden="true">↓</span></a></div>
         <div id="status" role="status" aria-live="polite"></div><progress id="meter" max="1" value="0" hidden></progress>
       </div>
     </div>
   </section>
-  <div class="bar"><span class="wordmark">B 剣と回避のダンジョンRPG</span><div class="buttons"><button id="help">操作方法</button><button id="full">全画面</button><a id="demo" href="media/demo.mp4" hidden>プレイ映像 ▷</a></div></div>
+  <div class="bar"><span class="wordmark">B拠点ダンジョン探索ゲーム</span><div class="buttons"><button id="help">操作方法</button><button id="full">全画面</button><a id="demo" href="media/demo.mp4" hidden>プレイ映像 ▷</a></div></div>
+  <section class="play-guide" id="how-to-play" aria-labelledby="guide-title" tabindex="-1">
+    <h2 id="guide-title">このゲームの遊び方</h2>
+    <div class="guide-columns">
+      <section><h3>最初にすること</h3><p>拠点の右手にある門を調べ、「灰灯の坑道」へ出発しましょう。敵に近づいて斬撃を当て、床に攻撃の予告が出たら回避で範囲の外へ。攻撃が過ぎたところが反撃の機会です。</p></section>
+      <section><h3>遊びの流れ</h3><p>部屋を制圧したら、祭壇で傷を癒やすか、古櫃の火片を持ち帰るかを選びます。探索中は遺物で斬撃や回避を強め、帰還後は鍛冶場で灯剣・外套・薬びんを強化できます。</p></section>
+      <section><h3>目指すもの</h3><p>全8地区の奥には、それぞれ違う守り手が待っています。潮刃の走る床や結晶波を見切り、16種類の遺物を試しながら攻略を進めましょう。4地区を越えると深層の巡回にも挑めます。</p></section>
+    </div>
+  </section>
   <dialog id="guide"><div class="dialogtop"><h2>操作方法</h2><button class="close">閉じる</button></div><p>キーボードとマウスで遊べます。進行はこのブラウザーに保存されます。</p><div id="controls">WASD・矢印で移動。J・左クリック長押しで斬撃、K・Spaceで回避、Lで衝撃波、Qで回復、Tで途中帰還。
 
 拠点はEで設備を利用。Jで地区、Kで鍛冶、Bで魔物誌を選択。メニューは矢印とEnterで決定、Backspaceで戻ります。

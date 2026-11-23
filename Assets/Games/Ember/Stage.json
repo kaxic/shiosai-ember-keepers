@@ -1,10 +1,10 @@
 {
   "key": "Ember",
-  "title": "B 剣と回避のダンジョンRPG",
+  "title": "B拠点ダンジョン探索ゲーム",
   "subtitle": "灯守の地下回廊",
   "english": "THE EMBER WARDEN",
   "product": "The Ember Warden",
-  "introduction": "消えた炉に、もう一度火を。\n八つの地下回廊を巡り、失われた灯を取り戻す。",
+  "introduction": "まずは拠点の右の門から、灰灯の坑道へ。\n敵の攻撃をかわし、火片を持ち帰って剣を鍛えよう。",
   "controls": "WASD・矢印で移動。J・左クリック長押しで斬撃、K・Spaceで回避、Lで衝撃波、Qで回復、Tで途中帰還。\n\n拠点はEで設備を利用。Jで地区、Kで鍛冶、Bで魔物誌を選択。メニューは矢印とEnterで決定、Backspaceで戻ります。",
   "accent": "#E2B169",
   "ink": "#15212A",
